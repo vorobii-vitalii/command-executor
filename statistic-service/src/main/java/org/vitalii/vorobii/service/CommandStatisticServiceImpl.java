@@ -64,7 +64,11 @@ public class CommandStatisticServiceImpl implements CommandStatisticService {
     public StatisticsResult getLastStatistics() {
         final List<StatisticsResult> statisticsResultList = new ArrayList<>();
 
-        statisticsResultRepository.findAll().forEach(statisticsResultList::add);
+        statisticsResultRepository.findAll().forEach(statisticsResult -> {
+            if (statisticsResult != null) {
+                statisticsResultList.add(statisticsResult);
+            }
+        });
 
         sortStatisticListByCreationDesc(statisticsResultList);
 
@@ -84,6 +88,9 @@ public class CommandStatisticServiceImpl implements CommandStatisticService {
         final Map<String, List<RedisCommand>> commandsGroupedByType = new HashMap<>();
 
         commandRepository.findAll().forEach(redisCommand -> {
+            if (redisCommand == null) {
+                return;
+            }
             String commandType = redisCommand.getCommandType();
 
             if (!commandsGroupedByType.containsKey(commandType)) {

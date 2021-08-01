@@ -1,6 +1,7 @@
-package org.vitalii.vorobii.config;
+package org.vitalii.vorobii.config.config;
 
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
@@ -16,9 +17,6 @@ import org.vitalii.vorobii.listener.MessageListener;
 @Configuration
 public class RabbitMessageBrokerConfig {
 
-    private static final String TASKS_DONE_ROUTING_KEY = "tasks.done.queue.#";
-    public static final String TASKS_DONE_EXCHANGE = "tasks.done.exchange";
-
     @Value("${rabbit.mq.host}")
     private String rabbitMqHostName;
 
@@ -31,11 +29,8 @@ public class RabbitMessageBrokerConfig {
     @Value("${rabbit.tasks.todo.queueName}")
     private String tasksToDoQueueName;
 
-    @Value("${tasks.done.queue.command}")
-    private String tasksDoneQueueCommand;
-
-    @Value("${tasks.done.queue.statistic}")
-    private String tasksDoneQueueStatistics;
+    @Value("${rabbit.tasks.done.queueName}")
+    private String tasksDoneQueueName;
 
     @Autowired
     private MessageListener messageListener;
@@ -59,54 +54,28 @@ public class RabbitMessageBrokerConfig {
     public RabbitTemplate rabbitTemplate() {
         RabbitTemplate template = new RabbitTemplate(connectionFactory());
 
-        template.setExchange(TASKS_DONE_EXCHANGE);
-        template.setRoutingKey(TASKS_DONE_ROUTING_KEY);
+        template.setRoutingKey(this.tasksToDoQueueName);
+        template.setDefaultReceiveQueue(this.tasksToDoQueueName);
 
         return template;
     }
 
     @Bean
-    public TopicExchange tasksDoneExchange() {
-        return new TopicExchange(TASKS_DONE_EXCHANGE);
-    }
-
-    @Bean
-    public Queue tasksToDoQueue() {
+    public Queue queueDefinition() {
         return new Queue(this.tasksToDoQueueName);
     }
 
     @Bean
-    public Queue tasksDoneQueueCommandDefinition() {
-        return new Queue(this.tasksDoneQueueCommand);
+    public Queue tasksDoneQueue() {
+        return new Queue(this.tasksDoneQueueName);
     }
 
     @Bean
-    public Queue tasksDoneQueueStatisticsDefinition() {
-        return new Queue(this.tasksDoneQueueStatistics);
-    }
-
-    @Bean
-    public Binding commandBinding() {
-        return BindingBuilder
-                .bind(tasksDoneQueueCommandDefinition())
-                .to(tasksDoneExchange())
-                .with(TASKS_DONE_ROUTING_KEY);
-    }
-
-    @Bean
-    public Binding statisticBinding() {
-        return BindingBuilder
-                .bind(tasksDoneQueueStatisticsDefinition())
-                .to(tasksDoneExchange())
-                .with(TASKS_DONE_ROUTING_KEY);
-    }
-
-    @Bean
-    public SimpleMessageListenerContainer todoTasksListenerContainer() {
+    public SimpleMessageListenerContainer doneTasksListenerContainer() {
         SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
 
         container.setConnectionFactory(connectionFactory());
-        container.setQueueNames(this.tasksToDoQueueName);
+        container.setQueueNames(this.tasksDoneQueueName);
         container.setMessageListener(new MessageListenerAdapter(this.messageListener));
 
         return container;
