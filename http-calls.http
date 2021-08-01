@@ -1,0 +1,18 @@
+
+### Create a command
+POST http://localhost:8081/commands
+Content-Type: application/json
+
+{
+  "clientId": "123",
+  "commandType": "SIN",
+  "params": {
+    "number": 490
+  }
+}
+
+### Get last statistic
+GET http://localhost:8082/statistics/last
+
+### Get commands by clientId
+GET http://localhost:8081/commands/123
