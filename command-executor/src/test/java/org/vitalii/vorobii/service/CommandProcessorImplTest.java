@@ -34,7 +34,6 @@ class CommandProcessorImplTest {
     public static final String UNSUPPORTED_COMMAND_TYPE = "unsupportedCommandType";
     public static final String SUPPORTED_COMMAND_TYPE = "SIN";
     public static final HashMap<String, String> PARAMS = new HashMap<>();
-    public static final String RESULT = "someResult";
     public static final String JSON_STRING = "{}";
 
     public static final ArgumentMatcher<DoneCommand> FAILED_COMMAND_MATCHER =
@@ -45,9 +44,6 @@ class CommandProcessorImplTest {
 
     public static final ArgumentMatcher<DoneCommand> EMPTY_RESULT_MATCHER =
             doneCommand -> doneCommand.getExecutionResult() == null;
-
-    public static final ArgumentMatcher<DoneCommand> NOT_EMPTY_RESULT_MATCHER =
-            doneCommand -> RESULT.equals(doneCommand.getExecutionResult());
 
     @Mock
     private ObjectMapper objectMapper;
@@ -99,6 +95,7 @@ class CommandProcessorImplTest {
         verifyMessageWasNotSent();
     }
 
+    @SafeVarargs
     @SneakyThrows
     private void verifyCorrectMessageWasSerialized(ArgumentMatcher<DoneCommand> ... matchers) {
         verify(objectMapper, times(1))
